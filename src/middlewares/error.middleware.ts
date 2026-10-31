@@ -7,38 +7,41 @@ export const errorMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): void => {
   console.error(error);
 
   if (error instanceof ZodError) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       message: "Validasi gagal",
       errors: error.issues,
     });
+    return;
   }
 
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
   ) {
-    return res.status(409).json({
+    res.status(409).json({
       success: false,
       message: "NIK atau email sudah digunakan",
     });
+    return;
   }
 
   if (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2025"
   ) {
-    return res.status(404).json({
+    res.status(404).json({
       success: false,
       message: "Employee not found",
     });
+    return;
   }
 
-  return res.status(500).json({
+  res.status(500).json({
     success: false,
     message: "Terjadi kesalahan pada server",
   });

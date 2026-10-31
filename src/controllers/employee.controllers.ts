@@ -1,13 +1,15 @@
+import { NextFunction, Request, Response } from "express";
+import z from "zod";
+
 import {
+  countEmployeeServices,
   createEmployeeServices,
   deleteEmployeeService,
   getEmployeeByIdServices,
   getEmployeesServices,
   updateEmployeeService,
 } from "../services/employee.services";
-import { Request, Response } from "express";
-import { Prisma } from "@prisma/client";
-import z from "zod";
+
 import { sendErrorResponse } from "../utlis/errorResponse";
 
 const employeeSchema = z.object({
@@ -27,10 +29,18 @@ const employeeSchema = z.object({
 
 const employeeUpdateSchema = employeeSchema.partial();
 
+const employeeSearchSchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(20).default(5),
+  department: z.string().optional(),
+  status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
+});
+
 export const createEmployee = async (
   req: Request,
   res: Response,
-): Promise<any> => {
+  next: NextFunction,
+): Promise<void> => {
   try {
     const validateData = employeeSchema.parse(req.body);
 
@@ -41,82 +51,94 @@ export const createEmployee = async (
         : undefined,
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Employee berhasil ditambahkan",
       data: employee,
     });
   } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return sendErrorResponse(res, 400, "Validasi gagal", error.issues);
-    }
-
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return sendErrorResponse(res, 400, "NIK atau email sudah digunakan");
-    }
-
-    return sendErrorResponse(res, 500, "Terjadi kesalahan pada server");
+    next(error);
   }
 };
 
 export const getEmployees = async (
   req: Request,
   res: Response,
-): Promise<any> => {
+  next: NextFunction,
+): Promise<void> => {
   try {
-    const employees = await getEmployeesServices();
+    const { page, limit, department, status } = employeeSearchSchema.parse(
+      req.body,
+    );
 
-    return res.status(200).json({
+    const payload = {
+      page,
+      limit,
+      department,
+      status,
+    };
+
+    const employees = await getEmployeesServices(payload);
+
+    const totalEmployees = await countEmployeeServices(payload);
+    const totalPages = Math.ceil(totalEmployees / limit);
+
+    res.status(200).json({
       success: true,
       message: "Data employee berhasil diambil",
       data: employees,
+      pagination: {
+        currentPage: page,
+        limit,
+        totalEmployees,
+        totalPages,
+      },
     });
   } catch (error: any) {
-    sendErrorResponse(res, 500, "Terjadi kesalahan pada server", error.issues);
+    next(error);
   }
 };
 
 export const getEmployeeById = async (
   req: Request,
   res: Response,
-): Promise<any> => {
+  next: NextFunction,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
     if (typeof id !== "string") {
-      return sendErrorResponse(res, 400, "Invalid employee ID");
+      return next(new Error("Invalid employee ID"));
     }
 
     const employee = await getEmployeeByIdServices(id);
 
     if (!employee) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: "Employee tidak ditemukan",
       });
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Data employee berhasil diambil",
       data: employee,
     });
   } catch (error: any) {
-    return sendErrorResponse(res, 500, "Terjadi kesalahan pada server");
+    next(error);
   }
 };
 
 export const updateEmployeeController = async (
   req: Request,
   res: Response,
-): Promise<any> => {
+  next: NextFunction,
+): Promise<void> => {
   const { id } = req.params;
 
   if (typeof id !== "string") {
-    return sendErrorResponse(res, 400, "Invalid employee ID");
+    return next(new Error("Invalid employee ID"));
   }
 
   try {
@@ -124,28 +146,21 @@ export const updateEmployeeController = async (
 
     const employee = await updateEmployeeService(id, validateData);
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Employee updated successfully",
       data: employee,
     });
   } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return sendErrorResponse(res, 400, "Validasi data gagal", error.issues);
-    }
-
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return sendErrorResponse(res, 404, "Employee not found");
-    }
-
-    return sendErrorResponse(res, 500, "Internal server error");
+    next(error);
   }
 };
 
-export const deleteEmployeeController = async (req: Request, res: Response) => {
+export const deleteEmployeeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   const { id } = req.params;
 
   if (typeof id !== "string") {
@@ -159,13 +174,6 @@ export const deleteEmployeeController = async (req: Request, res: Response) => {
       message: "Employee deleted successfully",
     });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return sendErrorResponse(res, 404, "Employee not found");
-    }
-
-    return sendErrorResponse(res, 500, "Internal server error");
+    next(error);
   }
 };

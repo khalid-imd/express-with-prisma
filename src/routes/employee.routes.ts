@@ -10,7 +10,7 @@ import {
 const router = Router();
 
 router.post(`/`, createEmployee);
-router.get(`/`, getEmployees);
+router.post(`/search`, getEmployees);
 router.get(`/:id`, getEmployeeById);
 router.put(`/:id`, updateEmployeeController);
 router.delete(`/:id`, deleteEmployeeController);

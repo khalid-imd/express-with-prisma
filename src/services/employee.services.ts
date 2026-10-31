@@ -1,5 +1,12 @@
 import prisma from "../config/prisma";
 
+type EmployeeSearchPayload = {
+  page: number;
+  limit: number;
+  department?: string;
+  status?: string;
+};
+
 export const createEmployeeServices = async (data: any) => {
   const newEmployee = await prisma.employee.create({
     data: data,
@@ -8,10 +15,32 @@ export const createEmployeeServices = async (data: any) => {
   return newEmployee;
 };
 
-export const getEmployeesServices = async () => {
-  const employees = await prisma.employee.findMany();
+export const getEmployeesServices = async (payload: EmployeeSearchPayload) => {
+  const { page, limit, department, status } = payload;
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      ...(department && { department }),
+      ...(status && { status }),
+    },
+
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: {
+      joinDate: "desc",
+    },
+  });
 
   return employees;
+};
+
+export const countEmployeeServices = async (filters: EmployeeSearchPayload) => {
+  return await prisma.employee.count({
+    where: {
+      ...(filters.department && { department: filters.department }),
+      ...(filters.status && { status: filters.status }),
+    },
+  });
 };
 
 export const getEmployeeByIdServices = async (id: string) => {
