@@ -41,6 +41,25 @@ export const errorMiddleware = (
     return;
   }
 
+  if (error instanceof Error && error.message === "Employee tidak ditemukan") {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+    return;
+  }
+
+  if (
+    error instanceof Error &&
+    error.message === "Deleted employee tidak ditemukan"
+  ) {
+    res.status(404).json({
+      success: false,
+      message: error.message,
+    });
+    return;
+  }
+
   res.status(500).json({
     success: false,
     message: "Terjadi kesalahan pada server",

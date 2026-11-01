@@ -20,6 +20,7 @@ export const getEmployeesServices = async (payload: EmployeeSearchPayload) => {
 
   const employees = await prisma.employee.findMany({
     where: {
+      isDeleted: false,
       ...(department && { department }),
       ...(status && { status }),
     },
@@ -37,6 +38,7 @@ export const getEmployeesServices = async (payload: EmployeeSearchPayload) => {
 export const countEmployeeServices = async (filters: EmployeeSearchPayload) => {
   return await prisma.employee.count({
     where: {
+      isDeleted: false,
       ...(filters.department && { department: filters.department }),
       ...(filters.status && { status: filters.status }),
     },
@@ -47,6 +49,7 @@ export const getEmployeeByIdServices = async (id: string) => {
   const employee = await prisma.employee.findUnique({
     where: {
       id: id,
+      isDeleted: false,
     },
   });
 
@@ -66,6 +69,17 @@ export const updateEmployeeService = async (
     salary?: number;
   },
 ) => {
+  const employee = await prisma.employee.findFirst({
+    where: {
+      id,
+      isDeleted: false,
+    },
+  });
+
+  if (!employee) {
+    throw new Error("Employee tidak ditemukan");
+  }
+
   return await prisma.employee.update({
     where: { id },
     data,
@@ -73,7 +87,32 @@ export const updateEmployeeService = async (
 };
 
 export const deleteEmployeeService = async (id: string) => {
-  return await prisma.employee.delete({
+  return await prisma.employee.update({
     where: { id: id },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+    },
+  });
+};
+
+export const restroreEmployeeService = async (id: string) => {
+  const employee = await prisma.employee.findFirst({
+    where: {
+      id: id,
+      isDeleted: true,
+    },
+  });
+
+  if (!employee) {
+    throw new Error("Deleted employee tidak ditemukan");
+  }
+
+  return await prisma.employee.update({
+    where: { id },
+    data: {
+      isDeleted: false,
+      deletedAt: null,
+    },
   });
 };

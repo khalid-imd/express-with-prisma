@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import z from "zod";
+import z, { success } from "zod";
 
 import {
   countEmployeeServices,
@@ -7,6 +7,7 @@ import {
   deleteEmployeeService,
   getEmployeeByIdServices,
   getEmployeesServices,
+  restroreEmployeeService,
   updateEmployeeService,
 } from "../services/employee.services";
 
@@ -174,6 +175,30 @@ export const deleteEmployeeController = async (
       message: "Employee deleted successfully",
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+export const restoreEmployeeController = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const { id } = req.params;
+
+  if (typeof id !== "string") {
+    return next(new Error("Invalid employee ID"));
+  }
+
+  try {
+    const employee = await restroreEmployeeService(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Employee restored successfully",
+      data: employee,
+    });
+  } catch (error: unknown) {
     next(error);
   }
 };
