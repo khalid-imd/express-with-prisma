@@ -1,5 +1,73 @@
 /**
  * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register user baru
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Khalid
+ *               email:
+ *                 type: string
+ *                 example: budi@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: 123456
+ *     responses:
+ *       201:
+ *         description: User berhasil didaftarkan
+ *       400:
+ *         description: Data tidak valid
+ *       409:
+ *         description: Email sudah digunakan
+ */
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: budi@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: 123456
+ *     responses:
+ *       200:
+ *         description: email atau password salah
+ *       400:
+ *         description: Data tidak valid
+ *       409:
+ *         description: Email sudah digunakan
+ */
+
+/**
+ * @swagger
  * /api/employees:
  *   post:
  *     summary: Create a new employee
