@@ -7,6 +7,7 @@ import {
   restoreEmployeeController,
   updateEmployeeController,
 } from "../controllers/employee.controllers";
+import { authtenticateToken } from "../middlewares/auth.middleware";
 
 const router = Router();
 
@@ -25,11 +26,11 @@ const router = Router();
  *       409:
  *         description: NIK or email already exists
  */
-router.post(`/`, createEmployee);
-router.post(`/search`, getEmployees);
-router.get(`/:id`, getEmployeeById);
-router.put(`/:id`, updateEmployeeController);
-router.delete(`/:id`, deleteEmployeeController);
-router.patch(`/:id/restore`, restoreEmployeeController);
+router.post(`/`, authtenticateToken, createEmployee);
+router.post(`/search`, authtenticateToken, getEmployees);
+router.get(`/:id`, authtenticateToken, getEmployeeById);
+router.put(`/:id`, authtenticateToken, updateEmployeeController);
+router.delete(`/:id`, authtenticateToken, deleteEmployeeController);
+router.patch(`/:id/restore`, authtenticateToken, restoreEmployeeController);
 
 export default router;

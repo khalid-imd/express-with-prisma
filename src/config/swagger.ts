@@ -13,6 +13,16 @@ const option: swaggerJSDoc.Options = {
         url: "http://localhost:3000",
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Masukkan JWT token hasil login",
+        },
+      },
+    },
   },
   apis: ["src/docs/*.ts"],
 };

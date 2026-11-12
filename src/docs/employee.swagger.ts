@@ -73,6 +73,8 @@
  *     summary: Create a new employee
  *     tags: [Employees]
  *     description: Create a new employee record.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -104,6 +106,8 @@
  *   get:
  *     summary: Get employee by ID
  *     tags: [Employees]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -125,6 +129,8 @@
  *     summary: Search employees
  *     tags: [Employees]
  *     description: Search employees with pagination and filters.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: false
  *       content:
@@ -159,6 +165,8 @@
  *     summary: Update employee
  *     tags: [Employees]
  *     description: Update an existing active employee.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -230,6 +238,8 @@
  *     summary: Soft delete employee
  *     tags: [Employees]
  *     description: Mark an employee as deleted without removing the record from the database.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -251,6 +261,8 @@
  *     summary: Restore deleted employee
  *     tags: [Employees]
  *     description: Restore a soft-deleted employee and make it active again.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
